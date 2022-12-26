@@ -4,50 +4,59 @@ Open-source wrapper library built to make using the Payfast API with Flutter muc
 
 _N.B. Has only been tested in Payfast Sandbox!_
 
+Use ngrok and nodejs getting started guide to recieve and respond to webhook.
+
+
 ## Usage
-#### Add import
+### Add import
 ```dart
 import 'package:payfast/payfast.dart';
 ```
-#### Setup simple payment
+
+### Default Setup
 
 ```dart
 var payfast = Payfast(
-merchantId: 'merchant-id',
-merchantKey: 'merchant-key',
-passphrase: 'passphrase-set-in-sandbox',
-paymentType: PaymentType.SimplePayment,
-production: true || false,
-);
-
-payfast.createSimplePayment(
-amount: 100,
-itemName: 'Soap',
-);
+    passphrase: 'JoshuaMunstermann',
+    paymentType: PaymentType.SimplePayment,
+    production: false,
+    merchantDetails: MerchantDetails(
+      merchant_id: '10026561',
+      merchant_key: 'cwon220sjr9ga',
+      notify_url: 'https://b5f5-196-30-8-166.eu.ngrok.io',
+      return_url: 'https://google.com',
+    ),
+  );
 ```
-#### Setup recurring payment
+
+### Simple payment
 
 ```dart
-var payfast = Payfast(
-merchantId: 'merchant-id',
-merchantKey: 'merchant-key',
-passphrase: 'passphrase-set-in-sandbox',
-paymentType: PaymentType.RecurringBilling,
-production: true || false,
-);
-
-payfast.createSubsriptionPayment(
-amount: 100,
-itemName: 'CAS',
-subscriptionType: SubscriptionType.subscription,
-billingDate: '2022-07-06',
-cycles: 2,
-cyclePeriod: FrequencyCyclePeriod.Monthly,
-recurringAmount: 100,
-);
-```
-#### Generate Url
-```dart
+payfast.createSimplePayment(amount: '100', itemName: 'TV');
 print(payfast.generateURL());
 ```
+
+### Recurring Billing
+
+#### Subscription
+
+```dart
+payfast.setRecurringBillingType(RecurringPaymentType.subscription);
+payfast.setupRecurringBillingSubscription(
+    amount: 100,
+    itemName: 'TV',
+    billingDate: '2022-07-25',
+    cycles: 2,
+    cyclePeriod: FrequencyCyclePeriod.Monthly,
+    recurringAmount: 300,
+  );
+```
+
+#### Tokenization (Documentation incomplete)
+```dart
+payfast.setRecurringBillingType(RecurringPaymentType.tokenization);
+payfast.setupRecurringBillingTokenization();
+print(payfast.generateURL());
+```
+
 Inspired by https://github.com/GetTruck/payfast-js
