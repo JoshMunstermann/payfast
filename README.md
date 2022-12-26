@@ -50,6 +50,7 @@ payfast.setupRecurringBillingSubscription(
     cyclePeriod: FrequencyCyclePeriod.Monthly,
     recurringAmount: 300,
   );
+print(payfast.generateURL());
 ```
 
 #### Tokenization (Documentation incomplete)
