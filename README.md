@@ -8,7 +8,7 @@ Use ngrok and nodejs getting started guide to recieve and respond to webhook.
 
 
 ## Usage
-### Add import
+Import the package with
 ```dart
 import 'package:payfast/payfast.dart';
 ```
