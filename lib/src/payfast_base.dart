@@ -1,11 +1,11 @@
-import 'package:payfast/src/billing_types/recurring_billing_types.dart/subscription_payment.dart';
-import 'package:payfast/src/billing_types/recurring_billing_types.dart/tokenization_billing.dart';
-import 'package:payfast/src/merchant_details.dart';
+import 'package:payfast/src/models/billing_types/recurring_billing_types/subscription_payment.dart';
+import 'package:payfast/src/models/billing_types/recurring_billing_types/tokenization_billing.dart';
+import 'package:payfast/src/models/merchant_details.dart';
 import 'package:payfast/src/services/signature_service.dart';
+import 'package:payfast/src/enums/enums.dart';
 
-import 'billing_types/recurring_billing.dart';
-import 'billing_types/simple_billing.dart';
-import 'enums.dart';
+import 'models/billing_types/recurring_billing.dart';
+import 'models/billing_types/simple_billing.dart';
 
 class Payfast {
   String passphrase;
@@ -27,29 +27,29 @@ class Payfast {
   String generateURL() {
     Map<String, dynamic> queryParameters = {};
     //Simple Payment
-    if (paymentType == PaymentType.SimplePayment) {
+    if (paymentType == PaymentType.simplePayment) {
       Map<String, dynamic> simpleQueryParameters = {
         ...merchantDetails.toMap(),
         'amount': simpleBilling?.amount,
-        'item_name': simpleBilling?.item_name,
+        'item_name': simpleBilling?.itemName,
       };
 
       queryParameters = simpleQueryParameters;
     }
     //Recurring Billing
-    else if (paymentType == PaymentType.RecurringBilling) {
+    else if (paymentType == PaymentType.recurringBilling) {
       //Subscription
       if (recurringBilling?.recurringPaymentType ==
           RecurringPaymentType.subscription) {
         Map<String, dynamic> recurringSubscriptionQueryParameters = {
           ...merchantDetails.toMap(),
           'amount': recurringBilling?.subscriptionPayment?.amount,
-          'item_name': recurringBilling?.subscriptionPayment?.item_name,
+          'item_name': recurringBilling?.subscriptionPayment?.itemName,
           'subscription_type':
-              recurringBilling?.subscriptionPayment?.subscriptions_type,
-          'billing_date': recurringBilling?.subscriptionPayment?.billing_date,
+              recurringBilling?.subscriptionPayment?.subscriptionsType,
+          'billing_date': recurringBilling?.subscriptionPayment?.billingDate,
           'recurring_amount':
-              recurringBilling?.subscriptionPayment?.recurring_amount,
+              recurringBilling?.subscriptionPayment?.recurringAmount,
           'frequency': recurringBilling?.subscriptionPayment?.frequency,
           'cycles': recurringBilling?.subscriptionPayment?.cycles,
         };
@@ -95,7 +95,7 @@ class Payfast {
   }) {
     simpleBilling = SimpleBilling(
       amount: amount,
-      item_name: itemName,
+      itemName: itemName,
     );
   }
 
@@ -114,9 +114,9 @@ class Payfast {
   }) {
     recurringBilling!.subscriptionPayment = SubscriptionPayment(
       amount: amount.toString(),
-      item_name: itemName,
-      billing_date: billingDate,
-      recurring_amount: recurringAmount.toString(),
+      itemName: itemName,
+      billingDate: billingDate,
+      recurringAmount: recurringAmount.toString(),
       frequency: (cyclePeriod.index + 3).toString(),
       cycles: cycles.toString(),
     );

@@ -4,7 +4,7 @@
 library payfast;
 
 export 'src/payfast_base.dart';
-export 'src/enums.dart';
+export 'src/enums/enums.dart';
 
 
 // TODO: Export any libraries intended for clients of this package.
