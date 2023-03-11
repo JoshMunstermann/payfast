@@ -37,7 +37,7 @@ void main() {
   //Payfast Recurring Billing Tokenization example:
   payfast.setupRecurringBillingTokenization();
 
-  // print(payfast.generateURL());
+  print(payfast.generateURL());
 
-  payfast.chargeTokenization();
+  // payfast.chargeTokenization();
 }
