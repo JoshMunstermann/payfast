@@ -1,9 +1,6 @@
 import 'package:payfast/payfast.dart';
 import 'package:payfast/src/models/merchant_details.dart';
 
-//New updates, introducted new type of subscription payment - tokenization, added support for return, cancel and notify urls and refactored some of the code.
-//Use ngrok and nodejs getting started guide to recieve and respond to webhook.
-
 void main() {
   //Default setup
   var payfast = Payfast(
