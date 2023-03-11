@@ -1,8 +1,8 @@
 class TokenizationBilling {
-  String? item_name;
+  String? itemName;
   String? amount;
-  late String subscription_type;
-  TokenizationBilling([this.item_name, this.amount]) {
-    subscription_type = '2';
+  late String subscriptionType;
+  TokenizationBilling([this.itemName, this.amount]) {
+    subscriptionType = '2';
   }
 }

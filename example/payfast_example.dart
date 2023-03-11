@@ -30,7 +30,7 @@ void main() {
     itemName: 'TV',
     billingDate: '2022-07-25',
     cycles: 2,
-    cyclePeriod: FrequencyCyclePeriod.Monthly,
+    cyclePeriod: FrequencyCyclePeriod.monthly,
     recurringAmount: 300,
   );
 

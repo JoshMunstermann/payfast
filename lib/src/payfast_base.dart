@@ -64,7 +64,7 @@ class Payfast {
           'amount': '250',
           'item_name': 'Netflix',
           'subscription_type':
-              recurringBilling?.tokenizationBilling?.subscription_type,
+              recurringBilling?.tokenizationBilling?.subscriptionType,
         };
 
         queryParameters = recurringTokenizationQueryParameters;
