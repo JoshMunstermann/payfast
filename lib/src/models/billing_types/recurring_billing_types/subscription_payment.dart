@@ -1,22 +1,31 @@
 class SubscriptionPayment {
-  String amount;
-  String itemName;
-  late String subscriptionsType;
-  String billingDate;
-  String recurringAmount;
-  String frequency;
-  String cycles;
+  static const String subscriptionType = '1';
 
-  SubscriptionPayment({
+  const SubscriptionPayment({
     required this.amount,
     required this.itemName,
     required this.billingDate,
     required this.recurringAmount,
     required this.frequency,
     required this.cycles,
-  }) {
-    subscriptionsType = '1';
-  }
+  });
 
-  void setupSubscriptionPayment(String test) {}
+  final String amount;
+  final String itemName;
+  final String billingDate;
+  final String recurringAmount;
+  final String frequency;
+  final String cycles;
+
+  Map<String, String> toMap() {
+    return {
+      'amount': amount,
+      'item_name': itemName,
+      'subscription_type': subscriptionType,
+      'billing_date': billingDate,
+      'recurring_amount': recurringAmount,
+      'frequency': frequency,
+      'cycles': cycles,
+    };
+  }
 }
