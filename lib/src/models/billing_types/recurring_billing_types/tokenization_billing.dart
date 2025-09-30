@@ -1,8 +1,19 @@
 class TokenizationBilling {
-  String? item_name;
-  String? amount;
-  late String subscription_type;
-  TokenizationBilling([this.item_name, this.amount]) {
-    subscription_type = '2';
+  static const String subscriptionType = '2';
+
+  const TokenizationBilling({
+    this.amount,
+    this.itemName,
+  });
+
+  final String? amount;
+  final String? itemName;
+
+  Map<String, String> toMap() {
+    return {
+      if (amount != null) 'amount': amount!,
+      if (itemName != null) 'item_name': itemName!,
+      'subscription_type': subscriptionType,
+    };
   }
 }

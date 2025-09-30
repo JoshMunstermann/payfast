@@ -1,22 +1,12 @@
+import 'package:payfast/src/enums/enums.dart';
+import 'package:payfast/src/models/billing_types/recurring_billing.dart';
 import 'package:payfast/src/models/billing_types/recurring_billing_types/subscription_payment.dart';
 import 'package:payfast/src/models/billing_types/recurring_billing_types/tokenization_billing.dart';
+import 'package:payfast/src/models/billing_types/simple_billing.dart';
 import 'package:payfast/src/models/merchant_details.dart';
 import 'package:payfast/src/services/signature_service.dart';
-import 'package:payfast/src/enums/enums.dart';
-
-import 'models/billing_types/recurring_billing.dart';
-import 'models/billing_types/simple_billing.dart';
 
 class Payfast {
-  String passphrase;
-  PaymentType paymentType;
-  bool production;
-
-  RecurringBilling? recurringBilling;
-  SimpleBilling? simpleBilling;
-  // TokenizationBilling? tokenizationBilling;
-  MerchantDetails merchantDetails;
-
   Payfast({
     required this.passphrase,
     required this.paymentType,
@@ -24,68 +14,34 @@ class Payfast {
     required this.merchantDetails,
   });
 
-  String generateURL() {
-    Map<String, dynamic> queryParameters = {};
-    //Simple Payment
-    if (paymentType == PaymentType.simplePayment) {
-      Map<String, dynamic> simpleQueryParameters = {
-        ...merchantDetails.toMap(),
-        'amount': simpleBilling?.amount,
-        'item_name': simpleBilling?.itemName,
-      };
+  final String passphrase;
+  final PaymentType paymentType;
+  final bool production;
+  final MerchantDetails merchantDetails;
 
-      queryParameters = simpleQueryParameters;
-    }
-    //Recurring Billing
-    else if (paymentType == PaymentType.recurringBilling) {
-      //Subscription
-      if (recurringBilling?.recurringPaymentType ==
-          RecurringPaymentType.subscription) {
-        Map<String, dynamic> recurringSubscriptionQueryParameters = {
-          ...merchantDetails.toMap(),
-          'amount': recurringBilling?.subscriptionPayment?.amount,
-          'item_name': recurringBilling?.subscriptionPayment?.itemName,
-          'subscription_type':
-              recurringBilling?.subscriptionPayment?.subscriptionsType,
-          'billing_date': recurringBilling?.subscriptionPayment?.billingDate,
-          'recurring_amount':
-              recurringBilling?.subscriptionPayment?.recurringAmount,
-          'frequency': recurringBilling?.subscriptionPayment?.frequency,
-          'cycles': recurringBilling?.subscriptionPayment?.cycles,
-        };
+  SimpleBilling? _simpleBilling;
+  RecurringBilling? _recurringBilling;
+  RecurringPaymentType? _recurringPaymentType;
 
-        queryParameters = recurringSubscriptionQueryParameters;
-      }
-      //Tokenization
-      else if (recurringBilling?.recurringPaymentType ==
-          RecurringPaymentType.tokenization) {
-        Map<String, dynamic> recurringTokenizationQueryParameters = {
-          ...merchantDetails.toMap(),
-          'amount': '250',
-          'item_name': 'Netflix',
-          'subscription_type':
-              recurringBilling?.tokenizationBilling?.subscription_type,
-        };
+  String generateURL() => buildPaymentUri().toString();
 
-        queryParameters = recurringTokenizationQueryParameters;
-      } else {
-        throw Exception("Payment type not selected");
-      }
-    }
+  Uri buildPaymentUri() {
+    final queryParameters = _buildQueryParameters();
+    final signature = SignatureService.createSignature(
+      queryParameters,
+      passphrase,
+    );
 
-    return Uri.decodeComponent(
-      Uri(
-        scheme: 'https',
-        host: '${production ? 'payfast' : 'sandbox.payfast'}.co.za',
-        path: '/eng/process',
-        queryParameters: {
-          ...queryParameters,
-          'signature': SignatureService.createSignature(
-            queryParameters,
-            passphrase,
-          ),
-        },
-      ).toString(),
+    final hostPrefix = production ? 'payfast' : 'sandbox.payfast';
+
+    return Uri(
+      scheme: 'https',
+      host: '$hostPrefix.co.za',
+      path: '/eng/process',
+      queryParameters: {
+        ...queryParameters,
+        'signature': signature,
+      },
     );
   }
 
@@ -93,15 +49,14 @@ class Payfast {
     required String amount,
     required String itemName,
   }) {
-    simpleBilling = SimpleBilling(
+    _simpleBilling = SimpleBilling(
       amount: amount,
       itemName: itemName,
     );
   }
 
   void setRecurringBillingType(RecurringPaymentType recurringPaymentType) {
-    recurringBilling =
-        RecurringBilling(recurringPaymentType: recurringPaymentType);
+    _recurringPaymentType = recurringPaymentType;
   }
 
   void setupRecurringBillingSubscription({
@@ -112,28 +67,36 @@ class Payfast {
     required FrequencyCyclePeriod cyclePeriod,
     required int recurringAmount,
   }) {
-    recurringBilling!.subscriptionPayment = SubscriptionPayment(
-      amount: amount.toString(),
-      itemName: itemName,
-      billingDate: billingDate,
-      recurringAmount: recurringAmount.toString(),
-      frequency: (cyclePeriod.index + 3).toString(),
-      cycles: cycles.toString(),
+    _assertRecurringType(RecurringPaymentType.subscription);
+
+    _recurringBilling = RecurringBilling.subscription(
+      subscriptionPayment: SubscriptionPayment(
+        amount: amount.toString(),
+        itemName: itemName,
+        billingDate: billingDate,
+        recurringAmount: recurringAmount.toString(),
+        frequency: cyclePeriod.payfastCode,
+        cycles: cycles.toString(),
+      ),
     );
   }
 
-  void setupRecurringBillingTokenization([
+  void setupRecurringBillingTokenization({
     int? amount,
     String? itemName,
-  ]) {
-    recurringBilling!.tokenizationBilling = TokenizationBilling(
-      amount.toString(),
-      itemName,
+  }) {
+    _assertRecurringType(RecurringPaymentType.tokenization);
+
+    _recurringBilling = RecurringBilling.tokenization(
+      tokenizationBilling: TokenizationBilling(
+        amount: amount?.toString(),
+        itemName: itemName,
+      ),
     );
   }
 
   void chargeTokenization() {
-    Map<String, dynamic> recurringTokenizationQueryParameters = {
+    final queryParameters = <String, String>{
       'token': '3ee21522-7cc9-464d-837a-3e791c5a6f1d',
       'merchant-id': '10026561',
       'version': 'v1',
@@ -142,13 +105,52 @@ class Payfast {
       'item_name': 'Netflix',
     };
 
-    Map<String, dynamic> signatureEntry = {
-      'signature': SignatureService.createSignature(
-          recurringTokenizationQueryParameters, 'JoshuaMunstermann'),
+    final signature = SignatureService.createSignature(
+      queryParameters,
+      passphrase,
+    );
+
+    final signedQuery = {
+      ...queryParameters,
+      'signature': signature,
     };
 
-    recurringTokenizationQueryParameters.addEntries(signatureEntry.entries);
+    print(signedQuery);
+  }
 
-    print(recurringTokenizationQueryParameters);
+  Map<String, String> _buildQueryParameters() {
+    switch (paymentType) {
+      case PaymentType.simplePayment:
+        final billing = _simpleBilling;
+        if (billing == null) {
+          throw StateError('Simple billing details have not been configured.');
+        }
+        return {
+          ...merchantDetails.toMap(),
+          ...billing.toMap(),
+        };
+      case PaymentType.recurringBilling:
+        final billing = _recurringBilling;
+        if (billing == null) {
+          throw StateError('Recurring billing details have not been configured.');
+        }
+        return {
+          ...merchantDetails.toMap(),
+          ...billing.toMap(),
+        };
+    }
+  }
+
+  void _assertRecurringType(RecurringPaymentType expectedType) {
+    if (_recurringPaymentType == null) {
+      _recurringPaymentType = expectedType;
+      return;
+    }
+
+    if (_recurringPaymentType != expectedType) {
+      throw StateError(
+        'Recurring billing configured for $_recurringPaymentType but attempted to configure $expectedType.',
+      );
+    }
   }
 }
